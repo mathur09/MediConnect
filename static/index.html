@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in or create account · MediConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="split">
+    <section class="brand-panel">
+      <div class="logo"><img src="logo.svg" alt="" width="44" height="38">Medi<span>connect</span></div>
+      <div class="brand-copy">
+        <h1>Care, records and medicines in one place.</h1>
+        <p>Patients, doctors and pharmacies sign in to the same connected platform.</p>
+      </div>
+      <div class="brand-foot">Connecting healthcare. Simplifying access. Improving outcomes.</div>
+    </section>
+
+    <section class="form-panel">
+      <div class="card">
+        <div class="modes" role="tablist" aria-label="Account">
+          <button type="button" role="tab" id="tab-signin" aria-selected="true">Sign in</button>
+          <button type="button" role="tab" id="tab-signup" aria-selected="false">Create account</button>
+        </div>
+        <h2 id="title">Welcome back</h2>
+        <p class="sub" id="sub">Choose who you are, then sign in.</p>
+
+        <form id="auth-form" novalidate>
+          <fieldset class="roles">
+            <legend>I am a</legend>
+            <input type="radio" name="role" id="r-patient" value="patient" checked>
+            <label for="r-patient">Patient</label>
+            <input type="radio" name="role" id="r-doctor" value="doctor">
+            <label for="r-doctor">Doctor</label>
+            <input type="radio" name="role" id="r-pharmacist" value="pharmacist">
+            <label for="r-pharmacist">Pharmacist</label>
+          </fieldset>
+
+          <div id="error" class="error" role="alert" hidden></div>
+
+          <!-- sign-up only: name -->
+          <div class="field" data-mode="signup" hidden>
+            <label for="full_name">Full name</label>
+            <input id="full_name" name="full_name" autocomplete="name">
+          </div>
+
+          <div class="field">
+            <label for="username">Username</label>
+            <input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+            <span class="hint" data-mode="signup" hidden>3-30 characters: letters, numbers, dot, dash, underscore.</span>
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="pw-row">
+              <input id="password" name="password" type="password" autocomplete="current-password" required>
+              <button type="button" id="toggle-pw" aria-controls="password">Show</button>
+            </div>
+            <span class="hint" data-mode="signup" hidden>At least 8 characters.</span>
+          </div>
+
+          <!-- sign-up only: confirm password -->
+          <div class="field" data-mode="signup" hidden>
+            <label for="confirm">Confirm password</label>
+            <input id="confirm" name="confirm" type="password" autocomplete="new-password">
+          </div>
+
+          <!-- sign-up only: role specific fields -->
+          <div data-role-fields="patient" hidden>
+            <div class="field">
+              <label for="phone">Phone number</label>
+              <input id="phone" name="phone" type="tel" autocomplete="tel">
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="date_of_birth">Date of birth</label>
+                <input id="date_of_birth" name="date_of_birth" type="date" autocomplete="bday">
+              </div>
+              <div class="field">
+                <label for="blood_group">Blood group <span class="optional">(optional)</span></label>
+                <select id="blood_group" name="blood_group">
+                  <option value="">Not sure</option>
+                  <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                  <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div data-role-fields="doctor" hidden>
+            <div class="field">
+              <label for="specialty">Specialty</label>
+              <input id="specialty" name="specialty" placeholder="e.g. Cardiology">
+            </div>
+            <div class="field">
+              <label for="hospital">Hospital or clinic</label>
+              <input id="hospital" name="hospital">
+            </div>
+            <div class="field">
+              <label for="d_license">Medical license number</label>
+              <input id="d_license" name="license_no">
+            </div>
+          </div>
+
+          <div data-role-fields="pharmacist" hidden>
+            <div class="field">
+              <label for="pharmacy_name">Pharmacy name</label>
+              <input id="pharmacy_name" name="pharmacy_name">
+            </div>
+            <div class="field">
+              <label for="p_license">Pharmacy license number</label>
+              <input id="p_license" name="license_no">
+            </div>
+          </div>
+
+          <button class="btn" id="submit" type="submit">Sign in</button>
+        </form>
+
+        <details class="demo" id="demo">
+          <summary>Demo accounts for testing</summary>
+          <ul>
+            <li><button type="button" data-role="patient" data-u="sarah.malik" data-p="patient123">Patient · <code>sarah.malik</code> / <code>patient123</code></button></li>
+            <li><button type="button" data-role="doctor" data-u="dr.shinde" data-p="doctor123">Doctor · <code>dr.shinde</code> / <code>doctor123</code></button></li>
+            <li><button type="button" data-role="pharmacist" data-u="healthplus" data-p="pharma123">Pharmacist · <code>healthplus</code> / <code>pharma123</code></button></li>
+          </ul>
+        </details>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const form = document.getElementById('auth-form');
+    const errorBox = document.getElementById('error');
+    const submitBtn = document.getElementById('submit');
+    const pw = document.getElementById('password');
+    const tabIn = document.getElementById('tab-signin');
+    const tabUp = document.getElementById('tab-signup');
+    let mode = 'signin';
+
+    // already signed in? go straight to the dashboard
+    fetch('/api/me').then(r => { if (r.ok) location.replace('/dashboard.html'); });
+
+    function currentRole() { return form.role.value; }
+
+    // Show/hide fields for the current mode + role. Hidden fields are disabled so they never get submitted.
+    function render() {
+      const signup = mode === 'signup';
+      tabIn.setAttribute('aria-selected', String(!signup));
+      tabUp.setAttribute('aria-selected', String(signup));
+      document.getElementById('title').textContent = signup ? 'Create your account' : 'Welcome back';
+      document.getElementById('sub').textContent = signup
+        ? 'Choose who you are and fill in your details.' : 'Choose who you are, then sign in.';
+      submitBtn.textContent = signup ? 'Create account' : 'Sign in';
+      pw.autocomplete = signup ? 'new-password' : 'current-password';
+      document.querySelectorAll('[data-mode="signup"]').forEach(el => el.hidden = !signup);
+      document.getElementById('demo').hidden = signup;
+      document.querySelectorAll('[data-role-fields]').forEach(box => {
+        const show = signup && box.dataset.roleFields === currentRole();
+        box.hidden = !show;
+        box.querySelectorAll('input, select').forEach(i => i.disabled = !show);
+      });
+      errorBox.hidden = true;
+    }
+
+    function setMode(m) { mode = m; render(); }
+    tabIn.addEventListener('click', () => setMode('signin'));
+    tabUp.addEventListener('click', () => setMode('signup'));
+    form.querySelectorAll('input[name="role"]').forEach(r => r.addEventListener('change', render));
+
+    document.getElementById('toggle-pw').addEventListener('click', e => {
+      const show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      e.target.textContent = show ? 'Hide' : 'Show';
+    });
+
+    document.querySelectorAll('.demo button').forEach(b => b.addEventListener('click', () => {
+      document.getElementById('r-' + b.dataset.role).checked = true;
+      form.username.value = b.dataset.u;
+      pw.value = b.dataset.p;
+      errorBox.hidden = true;
+    }));
+
+    function showError(msg) { errorBox.textContent = msg; errorBox.hidden = false; }
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      errorBox.hidden = true;
+      const signup = mode === 'signup';
+
+      // collect only enabled, visible fields
+      const body = { role: currentRole() };
+      new FormData(form).forEach((v, k) => { if (k !== 'role' && k !== 'confirm') body[k] = String(v).trim(); });
+      body.password = pw.value;
+
+      if (!body.username || !body.password) return showError('Enter your username and password.');
+      if (signup && pw.value !== document.getElementById('confirm').value) return showError('The two passwords do not match.');
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = signup ? 'Creating account…' : 'Signing in…';
+      try {
+        const res = await fetch(signup ? '/api/signup' : '/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (res.ok) { location.href = '/dashboard.html'; return; }
+        showError(data.error || 'Something went wrong. Try again.');
+      } catch {
+        showError('Cannot reach the server. Check that server.py is running.');
+      }
+      submitBtn.disabled = false;
+      submitBtn.textContent = signup ? 'Create account' : 'Sign in';
+    });
+
+    // open directly on the sign-up tab with  /#signup
+    if (location.hash === '#signup') mode = 'signup';
+    render();
+  </script>
+</body>
+</html>

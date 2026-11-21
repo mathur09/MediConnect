@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · MediConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo"><img src="logo.svg" alt="" width="36" height="31">Medi<span>connect</span></div>
+    <button id="logout" type="button">Sign out</button>
+  </header>
+  <main class="dash" hidden>
+    <span class="role-tag" id="role-tag"></span>
+    <h1 id="greeting"></h1>
+    <section class="panel">
+      <h2>Your account</h2>
+      <dl class="profile" id="profile"></dl>
+    </section>
+    <section class="panel">
+      <h2>What you will be able to do here</h2>
+      <ul class="next" id="next"></ul>
+    </section>
+  </main>
+
+  <script>
+    const LABELS = {
+      full_name: 'Name', username: 'Username', specialty: 'Specialty', hospital: 'Hospital',
+      license_no: 'License number', phone: 'Phone', date_of_birth: 'Date of birth',
+      blood_group: 'Blood group', pharmacy_name: 'Pharmacy'
+    };
+    const ROLE_NAMES = { patient: 'Patient', doctor: 'Doctor', pharmacist: 'Pharmacist' };
+    const NEXT = {
+      patient: ['Find hospitals and doctors near you', 'Book appointments', 'View your health history', 'Check medicine availability at nearby pharmacies'],
+      doctor: ['Manage your schedule and appointments', 'View patient records', 'Send digital prescriptions to pharmacies'],
+      pharmacist: ['Update live medicine stock', 'Receive verified digital prescriptions', 'Manage pickup and delivery requests']
+    };
+
+    (async () => {
+      const res = await fetch('/api/me');
+      if (!res.ok) return location.replace('/');
+      const { role, profile } = await res.json();
+      document.getElementById('role-tag').textContent = ROLE_NAMES[role];
+      document.getElementById('greeting').textContent = 'Hello, ' + profile.full_name;
+      const dl = document.getElementById('profile');
+      for (const [k, v] of Object.entries(profile)) {
+        const dt = document.createElement('dt'); dt.textContent = LABELS[k] || k;
+        const dd = document.createElement('dd'); dd.textContent = v || '—';
+        dl.append(dt, dd);
+      }
+      const ul = document.getElementById('next');
+      NEXT[role].forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.append(li); });
+      document.querySelector('main').hidden = false;
+    })();
+
+    document.getElementById('logout').addEventListener('click', async () => {
+      await fetch('/api/logout', { method: 'POST' });
+      location.replace('/');
+    });
+  </script>
+</body>
+</html>
